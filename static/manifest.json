@@ -1,0 +1,55 @@
+{
+  "name": "Il Mio Giardino",
+  "short_name": "Giardino",
+  "description": "Gestione del mio giardino: piante, vasi, fertilizzanti e cure.",
+  "lang": "it",
+  "dir": "ltr",
+
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+
+  "theme_color": "#5a7a3a",
+  "background_color": "#f5efe4",
+
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ],
+
+  "shortcuts": [
+    {
+      "name": "I miei vasi",
+      "short_name": "Vasi",
+      "description": "Apri direttamente la lista dei vasi",
+      "url": "/?sezione=vasi",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Tabelle",
+      "short_name": "Tabelle",
+      "description": "Apri la gestione delle tabelle",
+      "url": "/?sezione=tabelle",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+    }
+  ],
+
+  "categories": ["lifestyle", "productivity", "utilities"]
+}

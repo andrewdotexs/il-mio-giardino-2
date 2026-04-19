@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!--
+    Icona "Il Mio Giardino" v2.0
+    ================================
+    - Fondo: cerchio in tonalità crema, leggero gradiente per dare profondità.
+    - Soggetto: foglia stilizzata in verde bosco con venature più chiare e
+      un gradiente luce-ombra per la plasticità.
+    - Dettaglio: goccia d'acqua sulla foglia, con highlight speculare e
+      drop-shadow tenue.
+    - Tutto il soggetto resta entro il cerchio "safe" di raggio ~200 px
+      centrato in (256, 256): quella è la safe zone per le icone maskable
+      di Android.
+  -->
+
+  <defs>
+    <!-- Sfondo: crema caldo con lievissima gradazione -->
+    <radialGradient id="bgGrad" cx="50%" cy="40%" r="65%">
+      <stop offset="0%"  stop-color="#faf4e8"/>
+      <stop offset="100%" stop-color="#e8dfc9"/>
+    </radialGradient>
+
+    <!-- Foglia: verde bosco con luce dal quadrante alto-destro -->
+    <linearGradient id="foglia" x1="30%" y1="100%" x2="70%" y2="0%">
+      <stop offset="0%"   stop-color="#3f5a24"/>
+      <stop offset="55%"  stop-color="#5a7a3a"/>
+      <stop offset="100%" stop-color="#8fb25d"/>
+    </linearGradient>
+
+    <!-- Venatura centrale: più chiara della superficie -->
+    <linearGradient id="venatura" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%"   stop-color="#c7e09e" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="#6a8b45" stop-opacity="0.4"/>
+    </linearGradient>
+
+    <!-- Goccia d'acqua: azzurro traslucido con punto speculare -->
+    <radialGradient id="goccia" cx="40%" cy="35%" r="70%">
+      <stop offset="0%"   stop-color="#ffffff" stop-opacity="0.95"/>
+      <stop offset="35%"  stop-color="#c3e0ea" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="#3d7c93" stop-opacity="0.85"/>
+    </radialGradient>
+
+    <!-- Ombra morbida per la goccia -->
+    <filter id="ombraGoccia" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="3"/>
+      <feOffset dx="0" dy="3" result="off"/>
+      <feComponentTransfer result="fade">
+        <feFuncA type="linear" slope="0.35"/>
+      </feComponentTransfer>
+      <feMerge>
+        <feMergeNode in="fade"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+
+    <!-- Ombra sottile per la foglia, per staccarla dal fondo -->
+    <filter id="ombraFoglia" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="5"/>
+      <feOffset dx="2" dy="6" result="off"/>
+      <feComponentTransfer result="fade">
+        <feFuncA type="linear" slope="0.25"/>
+      </feComponentTransfer>
+      <feMerge>
+        <feMergeNode in="fade"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Sfondo circolare pieno (riempie tutto il viewBox così l'icona
+       funziona sia come "any" sia come "maskable": la maschera del
+       launcher può ritagliarne i bordi senza creare aloni) -->
+  <rect x="0" y="0" width="512" height="512" fill="url(#bgGrad)"/>
+
+  <!-- Cerchio decorativo di sfondo per aggiungere profondità -->
+  <circle cx="256" cy="256" r="200" fill="#ffffff" opacity="0.25"/>
+  <circle cx="256" cy="256" r="200" fill="none"
+          stroke="#5a7a3a" stroke-opacity="0.15" stroke-width="2"/>
+
+  <!-- Foglia: Path costruito a mano come forma classica a goccia
+       inclinata di ~30°. I due tratti curvi sono due Bezier cubiche
+       simmetriche rispetto alla venatura centrale. -->
+  <g filter="url(#ombraFoglia)" transform="translate(256 256) rotate(-28)">
+    <path d="
+        M 0 -150
+        C 80 -140, 130 -60, 110 60
+        C 90 130, 30 155, 0 150
+        C -30 155, -90 130, -110 60
+        C -130 -60, -80 -140, 0 -150
+        Z"
+      fill="url(#foglia)"/>
+
+    <!-- Venatura centrale dritta che segue l'asse della foglia -->
+    <path d="M 0 -140 L 0 145"
+          stroke="url(#venatura)" stroke-width="6"
+          stroke-linecap="round" fill="none"/>
+
+    <!-- Nervature laterali: due paia di curve simmetriche -->
+    <g stroke="#c7e09e" stroke-opacity="0.6" stroke-width="3"
+       stroke-linecap="round" fill="none">
+      <path d="M 0 -80 Q 40 -70 70 -40"/>
+      <path d="M 0 -80 Q -40 -70 -70 -40"/>
+      <path d="M 0 -10 Q 50 0 85 30"/>
+      <path d="M 0 -10 Q -50 0 -85 30"/>
+      <path d="M 0 60 Q 40 70 70 100"/>
+      <path d="M 0 60 Q -40 70 -70 100"/>
+    </g>
+
+    <!-- Highlight speculare in alto a destra per dare la sensazione
+         che la foglia sia lucida e riceva luce -->
+    <path d="
+        M 20 -130
+        C 60 -115, 90 -70, 85 -10
+        C 75 -55, 55 -95, 20 -130
+        Z"
+      fill="#ffffff" opacity="0.18"/>
+  </g>
+
+  <!-- Goccia d'acqua posata sulla foglia, leggermente decentrata
+       per sembrare "appoggiata" e non "incollata al centro" -->
+  <g filter="url(#ombraGoccia)">
+    <!-- Corpo della goccia: forma a lacrima, punta in alto -->
+    <path d="
+        M 310 180
+        C 330 210, 355 240, 355 270
+        C 355 300, 330 325, 310 325
+        C 290 325, 265 300, 265 270
+        C 265 240, 290 210, 310 180
+        Z"
+      fill="url(#goccia)"/>
+
+    <!-- Highlight principale (punto di luce in alto a sinistra) -->
+    <ellipse cx="293" cy="245" rx="10" ry="18"
+             fill="#ffffff" opacity="0.8"/>
+    <!-- Mini highlight di riflesso in basso a destra per un tocco 3D -->
+    <circle cx="333" cy="305" r="4" fill="#ffffff" opacity="0.5"/>
+  </g>
+</svg>

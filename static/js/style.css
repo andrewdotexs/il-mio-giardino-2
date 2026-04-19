@@ -1,0 +1,545 @@
+/* ============================================================
+   Il Mio Giardino v2.0 - Stile
+   ============================================================
+   Riprendo la palette della v1.0 (crema, verde bosco, marrone)
+   ma riorganizzo le regole con CSS custom properties per
+   facilitare futuri cambi di tema.
+   ============================================================ */
+
+/* ---------- Variabili (design tokens) ---------- */
+:root {
+  /* Colori di base */
+  --col-sfondo:        #f5efe4;   /* crema chiaro, come v1 */
+  --col-sfondo-card:   #fbf7ee;   /* card leggermente più chiare */
+  --col-bordo:         #d8cfba;
+  --col-testo:         #2b2a26;
+  --col-testo-soft:    #6b6457;   /* per label e testo secondario */
+
+  /* Accenti */
+  --col-verde:         #5a7a3a;   /* verde bosco principale */
+  --col-verde-scuro:   #425a2a;
+  --col-verde-chiaro:  #a8c088;
+  --col-terra:         #8b6f47;
+  --col-rosso:         #b85450;   /* per azioni distruttive e errori */
+  --col-ambra:         #c49552;   /* per warning/fitopatie */
+  --col-azzurro:       #5a7fa8;   /* per acqua/substrati */
+
+  /* Tipografia */
+  --font-serif:  Georgia, 'Times New Roman', serif;
+  --font-sans:   -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+                 'Helvetica Neue', Arial, sans-serif;
+
+  /* Spazi e radius (scala coerente) */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 24px;
+  --sp-6: 32px;
+
+  --radius-s: 8px;
+  --radius-m: 12px;
+  --radius-l: 18px;
+
+  /* Ombre sottili */
+  --ombra-card:  0 1px 3px rgba(0, 0, 0, 0.06);
+  --ombra-modal: 0 10px 30px rgba(0, 0, 0, 0.25);
+
+  /* Altezza della tab-bar, così la usiamo come padding-bottom del main */
+  --tab-bar-h: 64px;
+}
+
+/* ---------- Reset/base ---------- */
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--col-sfondo);
+  color: var(--col-testo);
+  font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  min-height: 100vh;
+  /* L'app ha una tab-bar fissa in basso: lasciamo lo spazio necessario
+     così l'ultimo elemento non finisce sotto. env(safe-area-inset-bottom)
+     copre il notch inferiore su iPhone e il bordo gestuale di Android. */
+  padding-bottom: calc(var(--tab-bar-h) + env(safe-area-inset-bottom, 0));
+}
+
+/* ---------- Header ---------- */
+.header-app {
+  text-align: center;
+  padding: var(--sp-5) var(--sp-4) var(--sp-3);
+}
+
+.titolo-app {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-size: 2rem;
+  letter-spacing: 0.5px;
+}
+
+.sottotitolo-app {
+  margin: var(--sp-1) 0 0;
+  color: var(--col-testo-soft);
+  font-size: 0.9rem;
+}
+
+.emoji-titolo {
+  display: inline-block;
+  margin-left: 4px;
+}
+
+/* ---------- Layout contenuto ---------- */
+.contenuto {
+  max-width: 780px;      /* su tablet/desktop resta leggibile */
+  margin: 0 auto;
+  padding: 0 var(--sp-4) var(--sp-5);
+}
+
+.sezione {
+  display: none;
+}
+.sezione.attiva {
+  display: block;
+}
+
+/* Header di sezione: titolo a sinistra, bottone "aggiungi" a destra */
+.header-sezione {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  margin: var(--sp-2) 0 var(--sp-4);
+}
+.header-sezione.compatto {
+  margin: var(--sp-4) 0 var(--sp-3);
+}
+
+.header-sezione h2,
+.header-sezione h3 {
+  font-family: var(--font-serif);
+  font-weight: 500;
+  margin: 0;
+}
+.header-sezione h2 { font-size: 1.4rem; }
+.header-sezione h3 { font-size: 1.1rem; }
+
+/* ---------- Input di ricerca ---------- */
+.input-ricerca {
+  width: 100%;
+  padding: var(--sp-3) var(--sp-4);
+  margin-bottom: var(--sp-4);
+  border: 1px solid var(--col-bordo);
+  border-radius: var(--radius-m);
+  background: var(--col-sfondo-card);
+  font-size: 0.95rem;
+  font-family: inherit;
+  color: inherit;
+}
+.input-ricerca:focus {
+  outline: none;
+  border-color: var(--col-verde);
+  box-shadow: 0 0 0 3px rgba(90, 122, 58, 0.15);
+}
+
+/* ---------- Bottoni ---------- */
+.btn-primario,
+.btn-secondario,
+.btn-pericolo {
+  border: 0;
+  border-radius: var(--radius-m);
+  padding: var(--sp-2) var(--sp-4);
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: filter 0.15s, transform 0.05s;
+  white-space: nowrap;
+}
+.btn-primario:active,
+.btn-secondario:active,
+.btn-pericolo:active { transform: scale(0.97); }
+
+.btn-primario {
+  background: var(--col-verde);
+  color: #fff;
+}
+.btn-primario:hover { filter: brightness(1.08); }
+
+.btn-secondario {
+  background: transparent;
+  color: var(--col-testo);
+  border: 1px solid var(--col-bordo);
+}
+.btn-secondario:hover { background: rgba(0, 0, 0, 0.04); }
+
+.btn-pericolo {
+  background: var(--col-rosso);
+  color: #fff;
+}
+.btn-pericolo:hover { filter: brightness(1.08); }
+
+/* Bottone compatto per azioni inline (modifica/elimina nelle card) */
+.btn-icona {
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  padding: var(--sp-2);
+  border-radius: var(--radius-s);
+  font-size: 1rem;
+  line-height: 1;
+  color: var(--col-testo-soft);
+}
+.btn-icona:hover { background: rgba(0, 0, 0, 0.05); color: var(--col-testo); }
+
+/* ---------- Lista e card ---------- */
+.lista {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+
+.card {
+  background: var(--col-sfondo-card);
+  border: 1px solid var(--col-bordo);
+  border-radius: var(--radius-l);
+  padding: var(--sp-4);
+  box-shadow: var(--ombra-card);
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--sp-3);
+  margin-bottom: var(--sp-2);
+}
+
+.card-titolo {
+  font-family: var(--font-serif);
+  font-weight: 500;
+  font-size: 1.05rem;
+  margin: 0 0 2px;
+  color: var(--col-verde-scuro);
+}
+
+.card-sottotitolo {
+  font-size: 0.85rem;
+  color: var(--col-testo-soft);
+  font-style: italic;
+  margin: 0 0 var(--sp-2);
+}
+
+.card-azioni {
+  display: flex;
+  gap: var(--sp-1);
+  flex-shrink: 0;
+}
+
+.card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+  font-size: 0.8rem;
+  color: var(--col-testo-soft);
+  margin-top: var(--sp-2);
+}
+
+.chip {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(90, 122, 58, 0.12);
+  color: var(--col-verde-scuro);
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+.chip.alt    { background: rgba(139, 111, 71, 0.15); color: var(--col-terra); }
+.chip.warn   { background: rgba(196, 149, 82, 0.18); color: var(--col-ambra); }
+.chip.danger { background: rgba(184, 84, 80, 0.15);  color: var(--col-rosso); }
+.chip.info   { background: rgba(90, 127, 168, 0.15); color: var(--col-azzurro); }
+
+/* Etichetta "preimpostato" sulle anagrafiche di sistema */
+.badge-preset {
+  display: inline-block;
+  padding: 2px 6px;
+  margin-left: 6px;
+  background: var(--col-bordo);
+  color: var(--col-testo-soft);
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Messaggio "nessun elemento" */
+.lista-vuota {
+  text-align: center;
+  padding: var(--sp-6) var(--sp-4);
+  color: var(--col-testo-soft);
+  font-style: italic;
+}
+
+/* ---------- Tab bar inferiore ---------- */
+.tab-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: calc(var(--tab-bar-h) + env(safe-area-inset-bottom, 0));
+  padding-bottom: env(safe-area-inset-bottom, 0);
+  display: flex;
+  background: var(--col-sfondo-card);
+  border-top: 1px solid var(--col-bordo);
+  z-index: 100;
+}
+
+.tab-bar-btn {
+  flex: 1;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  color: var(--col-testo-soft);
+  font-family: inherit;
+  font-size: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  transition: color 0.15s;
+  padding: 0;
+}
+.tab-bar-btn .tab-icona { font-size: 1.3rem; line-height: 1; }
+.tab-bar-btn.attiva { color: var(--col-verde); }
+.tab-bar-btn.attiva .tab-icona { transform: scale(1.05); }
+
+/* ---------- Tab interne (dentro sezione Tabelle) ---------- */
+.tabs-interne {
+  display: flex;
+  gap: var(--sp-2);
+  overflow-x: auto;
+  padding-bottom: var(--sp-2);
+  margin-bottom: var(--sp-2);
+  -webkit-overflow-scrolling: touch;
+}
+.tab-interna {
+  background: var(--col-sfondo-card);
+  border: 1px solid var(--col-bordo);
+  padding: var(--sp-2) var(--sp-4);
+  border-radius: 999px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.85rem;
+  color: var(--col-testo-soft);
+  white-space: nowrap;
+}
+.tab-interna.attiva {
+  background: var(--col-verde);
+  color: #fff;
+  border-color: var(--col-verde);
+}
+
+.pannello-tabella { display: none; }
+.pannello-tabella.attivo { display: block; }
+
+/* ---------- Modal ---------- */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  z-index: 1000;
+  padding: 0;
+}
+@media (min-width: 600px) {
+  .modal-overlay { align-items: center; padding: var(--sp-4); }
+}
+
+.modal-overlay.nascosto { display: none; }
+
+.modal {
+  background: var(--col-sfondo);
+  width: 100%;
+  max-width: 640px;
+  max-height: 92vh;
+  overflow-y: auto;
+  border-radius: var(--radius-l) var(--radius-l) 0 0;
+  box-shadow: var(--ombra-modal);
+  padding: var(--sp-5) var(--sp-4) var(--sp-4);
+  animation: slideUp 0.25s ease-out;
+}
+@media (min-width: 600px) {
+  .modal { border-radius: var(--radius-l); }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(20px); opacity: 0.8; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--sp-4);
+}
+.modal-titolo {
+  font-family: var(--font-serif);
+  font-size: 1.3rem;
+  font-weight: 500;
+  margin: 0;
+}
+.btn-chiudi {
+  background: rgba(0, 0, 0, 0.07);
+  border: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  font-size: 1.2rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ---------- Form ---------- */
+.form-gruppo {
+  background: var(--col-sfondo-card);
+  border: 1px solid var(--col-bordo);
+  border-radius: var(--radius-m);
+  padding: var(--sp-4);
+  margin-bottom: var(--sp-4);
+}
+
+.form-gruppo-titolo {
+  font-family: var(--font-serif);
+  font-size: 1rem;
+  font-weight: 500;
+  margin: 0 0 var(--sp-3);
+  color: var(--col-verde-scuro);
+}
+
+/* Griglia 2 colonne per campi affiancati */
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--sp-3);
+}
+.form-grid .full { grid-column: 1 / -1; }
+
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.campo label {
+  font-size: 0.8rem;
+  color: var(--col-testo-soft);
+  font-weight: 500;
+}
+.campo input,
+.campo select,
+.campo textarea {
+  padding: var(--sp-2) var(--sp-3);
+  border: 1px solid var(--col-bordo);
+  border-radius: var(--radius-s);
+  background: #fff;
+  font-family: inherit;
+  font-size: 0.95rem;
+  color: inherit;
+  width: 100%;
+}
+.campo input:focus,
+.campo select:focus,
+.campo textarea:focus {
+  outline: none;
+  border-color: var(--col-verde);
+  box-shadow: 0 0 0 2px rgba(90, 122, 58, 0.2);
+}
+.campo textarea { min-height: 70px; resize: vertical; }
+
+/* Multi-select a chip (per concimi in Vasi) */
+.chip-select {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+  max-height: 220px;
+  overflow-y: auto;
+  padding: var(--sp-2);
+  border: 1px solid var(--col-bordo);
+  border-radius: var(--radius-s);
+  background: #fff;
+}
+.chip-select-item {
+  padding: 6px 10px;
+  background: var(--col-sfondo);
+  border: 1px solid var(--col-bordo);
+  border-radius: 999px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.1s;
+}
+.chip-select-item:hover { background: rgba(0, 0, 0, 0.04); }
+.chip-select-item.selezionato {
+  background: var(--col-verde);
+  color: #fff;
+  border-color: var(--col-verde);
+}
+
+/* Bottoni azione in fondo al form */
+.azioni-form {
+  display: flex;
+  gap: var(--sp-3);
+  justify-content: flex-end;
+  margin-top: var(--sp-4);
+}
+
+/* Riga di componenti in editor substrato */
+.riga-componente {
+  display: grid;
+  grid-template-columns: 1fr 100px 40px;
+  gap: var(--sp-2);
+  margin-bottom: var(--sp-2);
+  align-items: center;
+}
+
+/* ---------- Toast ---------- */
+.toast {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: calc(var(--tab-bar-h) + env(safe-area-inset-bottom, 0) + var(--sp-4));
+  background: var(--col-verde-scuro);
+  color: #fff;
+  padding: var(--sp-3) var(--sp-4);
+  border-radius: var(--radius-m);
+  box-shadow: var(--ombra-modal);
+  z-index: 2000;
+  font-size: 0.9rem;
+  max-width: 90%;
+  animation: fadeInToast 0.2s;
+}
+.toast.errore { background: var(--col-rosso); }
+.toast.nascosto { display: none; }
+@keyframes fadeInToast {
+  from { transform: translate(-50%, 10px); opacity: 0; }
+  to   { transform: translate(-50%, 0);    opacity: 1; }
+}
+
+/* ---------- Utility ---------- */
+.muted { color: var(--col-testo-soft); }
+.hidden, .nascosto { display: none !important; }

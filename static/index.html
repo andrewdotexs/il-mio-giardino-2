@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#5a7a3a" />
+  <title>Il Mio Giardino</title>
+
+  <!-- Manifest PWA: permette l'installazione su home screen -->
+  <link rel="manifest" href="/manifest.json" />
+  <link rel="icon" type="image/svg+xml" href="/icons/icon.svg" />
+
+  <!-- Stili -->
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+
+  <!-- ==================================================================
+       HEADER
+       Il titolo usa il font serif della v1 per mantenere continuità
+       visiva tra le due versioni.
+       ================================================================== -->
+  <header class="header-app">
+    <h1 class="titolo-app">
+      Il Mio Giardino <span class="emoji-titolo">🌱</span>
+    </h1>
+    <p class="sottotitolo-app" id="sottotitolo-app">Piante · Vasi · Anagrafiche</p>
+  </header>
+
+  <!-- ==================================================================
+       CONTENUTO PRINCIPALE
+       Ogni <section.sezione> rappresenta una tab. Solo quella con la
+       classe "attiva" è visibile; le altre vengono nascoste via CSS.
+       ================================================================== -->
+  <main class="contenuto">
+
+    <!-- ========== SEZIONE PIANTE ========== -->
+    <section id="sezione-piante" class="sezione attiva">
+      <div class="header-sezione">
+        <h2>Le Mie Piante 🌿</h2>
+        <button class="btn-primario" id="btn-aggiungi-pianta">+ Aggiungi pianta</button>
+      </div>
+      <input type="search"
+             class="input-ricerca"
+             id="ricerca-piante"
+             placeholder="Cerca pianta per nome..." />
+      <div id="lista-piante" class="lista"></div>
+    </section>
+
+    <!-- ========== SEZIONE VASI ========== -->
+    <section id="sezione-vasi" class="sezione">
+      <div class="header-sezione">
+        <h2>I Miei Vasi 📦</h2>
+        <button class="btn-primario" id="btn-aggiungi-vaso">+ Aggiungi vaso</button>
+      </div>
+      <input type="search"
+             class="input-ricerca"
+             id="ricerca-vasi"
+             placeholder="Cerca per pianta o soprannome..." />
+      <div id="lista-vasi" class="lista"></div>
+    </section>
+
+    <!-- ========== SEZIONE TABELLE ========== -->
+    <section id="sezione-tabelle" class="sezione">
+      <div class="header-sezione">
+        <h2>Gestione Tabelle ⚙️</h2>
+      </div>
+
+      <!-- Selettore sotto-tabella. Uso dei radio nascosti + label per
+           non avere dipendenze JS sullo stile (lo switch visuale è puro CSS). -->
+      <div class="tabs-interne">
+        <button class="tab-interna attiva" data-tabella="fertilizzanti">💧 Fertilizzanti</button>
+        <button class="tab-interna" data-tabella="substrati">🪨 Substrati</button>
+        <button class="tab-interna" data-tabella="fitopatie">🔬 Fitopatie</button>
+      </div>
+
+      <div id="pannello-fertilizzanti" class="pannello-tabella attivo">
+        <div class="header-sezione compatto">
+          <h3>Fertilizzanti</h3>
+          <button class="btn-primario" id="btn-aggiungi-fertilizzante">+ Aggiungi</button>
+        </div>
+        <input type="search" class="input-ricerca" id="ricerca-fertilizzanti"
+               placeholder="Cerca per nome o marca..." />
+        <div id="lista-fertilizzanti" class="lista"></div>
+      </div>
+
+      <div id="pannello-substrati" class="pannello-tabella">
+        <div class="header-sezione compatto">
+          <h3>Substrati</h3>
+          <button class="btn-primario" id="btn-aggiungi-substrato">+ Aggiungi</button>
+        </div>
+        <input type="search" class="input-ricerca" id="ricerca-substrati"
+               placeholder="Cerca substrato..." />
+        <div id="lista-substrati" class="lista"></div>
+      </div>
+
+      <div id="pannello-fitopatie" class="pannello-tabella">
+        <div class="header-sezione compatto">
+          <h3>Fitopatie e parassiti</h3>
+          <button class="btn-primario" id="btn-aggiungi-fitopatia">+ Aggiungi</button>
+        </div>
+        <input type="search" class="input-ricerca" id="ricerca-fitopatie"
+               placeholder="Cerca fitopatia..." />
+        <div id="lista-fitopatie" class="lista"></div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ==================================================================
+       TAB BAR INFERIORE
+       Riprende lo stile della v1 con icone emoji. Le label sono brevi
+       per stare comodamente su uno schermo mobile.
+       ================================================================== -->
+  <nav class="tab-bar">
+    <button class="tab-bar-btn attiva" data-sezione="piante">
+      <span class="tab-icona">🌿</span>
+      <span class="tab-label">Piante</span>
+    </button>
+    <button class="tab-bar-btn" data-sezione="vasi">
+      <span class="tab-icona">📦</span>
+      <span class="tab-label">Vasi</span>
+    </button>
+    <button class="tab-bar-btn" data-sezione="tabelle">
+      <span class="tab-icona">⚙️</span>
+      <span class="tab-label">Tabelle</span>
+    </button>
+  </nav>
+
+  <!-- ==================================================================
+       MODAL OVERLAY (condiviso)
+       Un unico overlay che i vari moduli popolano col proprio form.
+       Quando è nascosto ha display:none, così non cattura i click.
+       ================================================================== -->
+  <div class="modal-overlay nascosto" id="modal-overlay" role="dialog" aria-modal="true">
+    <div class="modal" id="modal-contenuto">
+      <!-- Il contenuto viene iniettato dai moduli JS -->
+    </div>
+  </div>
+
+  <!-- Toast per feedback (successo/errore) -->
+  <div id="toast" class="toast nascosto"></div>
+
+  <!-- ==================================================================
+       SCRIPT
+       L'ordine è importante: app.js deve essere caricato per primo
+       perché espone l'oggetto globale `app` su cui gli altri moduli
+       si registrano.
+       ================================================================== -->
+  <script src="/js/app.js"></script>
+  <script src="/js/piante.js"></script>
+  <script src="/js/vasi.js"></script>
+  <script src="/js/tabelle.js"></script>
+
+  <!-- Registrazione service worker: avvenire solo dopo il load per non
+       rallentare il primo rendering. -->
+  <script>
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("/sw.js")
+          .catch(err => console.warn("SW non registrato:", err));
+      });
+    }
+  </script>
+</body>
+</html>
