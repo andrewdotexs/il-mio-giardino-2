@@ -1,2 +1,10 @@
-# Google App Engine generated folder
-appengine-generated/
+venv/
+*.sqlite, *.sqlite3
+*.log
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.bak
+*.tmp
+*.env
