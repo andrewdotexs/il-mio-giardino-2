@@ -72,11 +72,43 @@ CREATE TABLE IF NOT EXISTS piante (
     nome_scientifico    TEXT,
     famiglia            TEXT,
     tipo_ambiente       TEXT CHECK(tipo_ambiente IN ('interno','esterno','entrambi')) DEFAULT 'esterno',
+
+    -- Classificazione rapida (chip di testata nella scheda)
+    difficolta          TEXT CHECK(difficolta IN ('facile','media','difficile')),
+    stagionalita        TEXT,   -- libero: "Stop invernale", "Sempre attiva", "Annuale"
+    linea_fertilizzanti TEXT,   -- libero: "BioBizz", "COMPO", "COMPO + Cifo" ecc.
+
+    -- Tab CONCIMAZIONE
+    conc_periodo        TEXT,   -- "Aprile – Settembre"
+    conc_frequenza      TEXT,   -- "1x al mese"
+    conc_tipo           TEXT,   -- "Liquido succulente, 1/2 dose"
+    conc_stop           TEXT,   -- "Stop completo in autunno/inverno"
+    conc_note           TEXT,
+
+    -- Tab SUBSTRATO
+    sub_descrizione     TEXT,   -- "Substrato per succulente e cactus, ben drenante"
+    ph_ideale_min       REAL,
+    ph_ideale_max       REAL,
+    vaso_consigliato    TEXT,   -- "Terracotta con foro di drenaggio, non troppo grande"
+    rinvaso_frequenza   TEXT,   -- "Ogni 2-3 anni o quando le radici escono dal vaso"
+    terreno_vivo        TEXT,   -- consigli humus/micorrize
+
+    -- Tab ESPOSIZIONE (gli affianco ai campi numerici esistenti)
     luce                TEXT CHECK(luce IN ('pieno sole','mezz''ombra','ombra','luminoso indiretto')),
-    temp_min_c          REAL,    -- temperatura minima tollerata
-    temp_max_c          REAL,    -- temperatura massima tollerata
-    umidita_ottimale    INTEGER, -- % umidità aria ideale (0-100)
-    note                TEXT,
+    luce_descrizione    TEXT,   -- testo discorsivo della scheda
+    sole_diretto        TEXT,   -- "Evitare sole diretto estivo — brucia le foglie"
+    temp_min_c          REAL,   -- temperatura minima tollerata
+    temp_max_c          REAL,   -- temperatura massima tollerata
+    umidita_ottimale    INTEGER,-- % umidità aria ideale (0-100)
+    umidita_descrizione TEXT,   -- "Bassa; non nebulizzare"
+
+    -- Tab CURE
+    annaffiatura        TEXT,
+    potatura            TEXT,
+    parassiti           TEXT,
+    da_sapere           TEXT,
+
+    note                TEXT,   -- note generali, non legate a una tab specifica
     created_at          TEXT DEFAULT (datetime('now')),
     updated_at          TEXT DEFAULT (datetime('now'))
 );
@@ -444,11 +476,81 @@ def init_db():
     """
     Crea tabelle e indici se non esistono. Idempotente: chiamarlo più volte
     non causa danni.
+
+    Dopo la creazione dello schema richiama migra_piante() per portare i
+    database già esistenti al nuovo schema esteso (campi scheda agronomica
+    introdotti in v2.1). Su un DB nuovo la migrazione è no-op perché tutte
+    le colonne sono già state create da CREATE TABLE.
     """
     conn = get_connection()
     try:
         conn.executescript(SCHEMA)
         conn.commit()
+    finally:
+        conn.close()
+    migra_piante()
+
+
+def migra_piante():
+    """
+    Migrazione idempotente della tabella `piante`: aggiunge le colonne
+    introdotte nella scheda agronomica estesa (difficolta, stagionalita,
+    campi di concimazione, substrato, esposizione e cure) senza toccare i
+    dati esistenti.
+
+    Strategia: leggo la lista delle colonne attuali con PRAGMA table_info e
+    lancio ALTER TABLE ADD COLUMN solo per quelle mancanti. SQLite non
+    supporta ADD COLUMN IF NOT EXISTS, quindi il check manuale è l'approccio
+    canonico.
+    """
+    # (nome_colonna, definizione SQL). L'ordine conta solo per chiarezza
+    # nelle stampe di log: SQLite aggiunge le colonne in coda comunque.
+    COLONNE_V2_1 = [
+        ("difficolta",          "TEXT"),
+        ("stagionalita",        "TEXT"),
+        ("linea_fertilizzanti", "TEXT"),
+        ("conc_periodo",        "TEXT"),
+        ("conc_frequenza",      "TEXT"),
+        ("conc_tipo",           "TEXT"),
+        ("conc_stop",           "TEXT"),
+        ("conc_note",           "TEXT"),
+        ("sub_descrizione",     "TEXT"),
+        ("ph_ideale_min",       "REAL"),
+        ("ph_ideale_max",       "REAL"),
+        ("vaso_consigliato",    "TEXT"),
+        ("rinvaso_frequenza",   "TEXT"),
+        ("terreno_vivo",        "TEXT"),
+        ("luce_descrizione",    "TEXT"),
+        ("sole_diretto",        "TEXT"),
+        ("umidita_descrizione", "TEXT"),
+        ("annaffiatura",        "TEXT"),
+        ("potatura",            "TEXT"),
+        ("parassiti",           "TEXT"),
+        ("da_sapere",           "TEXT"),
+    ]
+
+    conn = get_connection()
+    try:
+        # PRAGMA table_info restituisce una riga per colonna con (cid, name, type,
+        # notnull, dflt_value, pk). A noi serve solo il nome.
+        esistenti = {
+            r["name"]
+            for r in conn.execute("PRAGMA table_info(piante)").fetchall()
+        }
+        aggiunte = []
+        for nome, tipo in COLONNE_V2_1:
+            if nome in esistenti:
+                continue
+            # NB: non aggiungo CHECK constraint sui campi migrati perché
+            # SQLite applica i CHECK di ALTER TABLE in modo inconsistente
+            # sui dati preesistenti. La validazione resta a carico del
+            # form lato client e del server (che può rifiutare con 400).
+            conn.execute(f"ALTER TABLE piante ADD COLUMN {nome} {tipo}")
+            aggiunte.append(nome)
+        if aggiunte:
+            conn.commit()
+            print(f"[migra] Aggiunte {len(aggiunte)} colonne a `piante`: "
+                  f"{', '.join(aggiunte)}")
     finally:
         conn.close()
 
@@ -509,6 +611,67 @@ def seed_if_empty():
                 PIANTE_INIZIALI,
             )
             print(f"[seed] Inserite {len(PIANTE_INIZIALI)} piante di esempio.")
+
+        # --- Sanseviera: golden sample con scheda completa --------------
+        # La inserisco sempre con INSERT OR IGNORE: se l'utente l'ha già
+        # aggiunta o cancellata, il suo stato resta invariato. Serve come
+        # esempio "vivo" di come si popolano i campi della scheda estesa
+        # nelle nuove versioni.
+        conn.execute(
+            """INSERT OR IGNORE INTO piante (
+                   nome_comune, nome_scientifico, famiglia, tipo_ambiente,
+                   difficolta, stagionalita, linea_fertilizzanti,
+                   conc_periodo, conc_frequenza, conc_tipo, conc_stop, conc_note,
+                   sub_descrizione, ph_ideale_min, ph_ideale_max,
+                   vaso_consigliato, rinvaso_frequenza, terreno_vivo,
+                   luce, luce_descrizione, sole_diretto,
+                   temp_min_c, temp_max_c, umidita_ottimale, umidita_descrizione,
+                   annaffiatura, potatura, parassiti, da_sapere,
+                   note
+               ) VALUES (
+                   ?, ?, ?, ?,
+                   ?, ?, ?,
+                   ?, ?, ?, ?, ?,
+                   ?, ?, ?,
+                   ?, ?, ?,
+                   ?, ?, ?,
+                   ?, ?, ?, ?,
+                   ?, ?, ?, ?,
+                   ?
+               )""",
+            (
+                "Sanseviera", "Dracaena trifasciata", "Asparagaceae", "interno",
+                "facile", "Stop invernale", "BioBizz",
+                "Aprile – Settembre", "1x al mese",
+                "Liquido succulente, 1/2 dose",
+                "Stop completo in autunno/inverno",
+                "Non concimare mai su terreno secco. Soffre più di eccessi che di carenze.",
+                "Substrato per succulente e cactus, ben drenante", 6.0, 7.0,
+                "Terracotta con foro di drenaggio, non troppo grande",
+                "Ogni 2-3 anni o quando le radici escono dal vaso",
+                ("Aggiungere 10% di humus di lombrico al substrato. Micorrize "
+                 "universali in polvere al rinvaso. Dose contenuta — la sanseviera "
+                 "preferisce substrati poveri; eccedere con organico rischia il marciume."),
+                "luminoso indiretto",
+                ("Luce indiretta brillante; tollera anche poca luce ma cresce "
+                 "più lentamente"),
+                "Evitare sole diretto estivo — brucia le foglie",
+                10.0, 30.0, 40, "Bassa; non nebulizzare",
+                ("Annaffiare poco e solo quando il terreno è completamente asciutto; "
+                 "in inverno 1x al mese"),
+                "Rimuovere foglie secche o danneggiate alla base",
+                "Cocciniglia e ragnetto rosso; trattare con olio di neem",
+                "Quasi indistruttibile — il nemico principale è l'eccesso d'acqua",
+                "Pianta ornamentale d'appartamento, molto resistente."
+            ),
+        )
+        if conn.total_changes and conn.execute(
+            "SELECT 1 FROM piante WHERE nome_comune = 'Sanseviera'"
+        ).fetchone():
+            # Stampa solo se è stata effettivamente inserita in questa chiamata.
+            # total_changes conta tutte le modifiche della connessione; è un
+            # segnale approssimativo ma va bene per il log di primo avvio.
+            pass
 
         conn.commit()
     finally:

@@ -104,29 +104,63 @@ def piante_get(pid):
         conn.close()
 
 
+# Campi della tabella `piante` scrivibili dall'API. Ogni campo è una
+# colonna fisica del DB; le query di INSERT e UPDATE vengono costruite
+# dinamicamente da questa lista. Quando in futuro si aggiungerà un nuovo
+# campo alla scheda agronomica basterà aggiungerlo qui e aggiornare il
+# form frontend — server.py non richiede altre modifiche.
+#
+# L'ordine è pensato per raggruppare logicamente i campi come appaiono
+# nel form (identificazione → chip header → concimazione → substrato →
+# esposizione → cure → note generali).
+CAMPI_PIANTA_SCRIVIBILI = [
+    # Identificazione
+    "nome_comune", "nome_scientifico", "famiglia", "tipo_ambiente",
+    # Classificazione rapida
+    "difficolta", "stagionalita", "linea_fertilizzanti",
+    # Concimazione
+    "conc_periodo", "conc_frequenza", "conc_tipo", "conc_stop", "conc_note",
+    # Substrato
+    "sub_descrizione", "ph_ideale_min", "ph_ideale_max",
+    "vaso_consigliato", "rinvaso_frequenza", "terreno_vivo",
+    # Esposizione (campo strutturato + descrittivi)
+    "luce", "luce_descrizione", "sole_diretto",
+    "temp_min_c", "temp_max_c",
+    "umidita_ottimale", "umidita_descrizione",
+    # Cure
+    "annaffiatura", "potatura", "parassiti", "da_sapere",
+    # Note generali
+    "note",
+]
+
+
+def _valori_pianta(data):
+    """
+    Estrae i valori scrivibili da `data` nell'ordine di CAMPI_PIANTA_SCRIVIBILI.
+    I campi mancanti diventano None (= NULL in SQLite). `tipo_ambiente` ha
+    un fallback a 'esterno' per rispettare il DEFAULT dello schema.
+    """
+    out = []
+    for nome in CAMPI_PIANTA_SCRIVIBILI:
+        if nome == "tipo_ambiente":
+            out.append(data.get(nome) or "esterno")
+        else:
+            out.append(data.get(nome))
+    return out
+
+
 def piante_create(data):
     """
     Crea una pianta. `data` deve contenere almeno `nome_comune`.
     Restituisce la riga appena creata.
     """
+    colonne = ", ".join(CAMPI_PIANTA_SCRIVIBILI)
+    placeholder = ", ".join(["?"] * len(CAMPI_PIANTA_SCRIVIBILI))
     conn = get_connection()
     try:
         cur = conn.execute(
-            """INSERT INTO piante
-               (nome_comune, nome_scientifico, famiglia, tipo_ambiente, luce,
-                temp_min_c, temp_max_c, umidita_ottimale, note)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
-            (
-                data.get("nome_comune"),
-                data.get("nome_scientifico"),
-                data.get("famiglia"),
-                data.get("tipo_ambiente", "esterno"),
-                data.get("luce"),
-                data.get("temp_min_c"),
-                data.get("temp_max_c"),
-                data.get("umidita_ottimale"),
-                data.get("note"),
-            ),
+            f"INSERT INTO piante ({colonne}) VALUES ({placeholder})",
+            _valori_pianta(data),
         )
         conn.commit()
         return piante_get(cur.lastrowid)
@@ -135,26 +169,18 @@ def piante_create(data):
 
 
 def piante_update(pid, data):
+    """
+    Aggiorna tutti i campi scrivibili di una pianta. I campi non presenti
+    in `data` vengono impostati a NULL — il form lato client invia sempre
+    tutti i campi del form, quindi questo pattern è coerente con la UI.
+    """
+    set_clause = ", ".join(f"{c} = ?" for c in CAMPI_PIANTA_SCRIVIBILI)
     conn = get_connection()
     try:
         conn.execute(
-            """UPDATE piante SET
-                 nome_comune = ?, nome_scientifico = ?, famiglia = ?,
-                 tipo_ambiente = ?, luce = ?, temp_min_c = ?, temp_max_c = ?,
-                 umidita_ottimale = ?, note = ?, updated_at = datetime('now')
-               WHERE id = ?""",
-            (
-                data.get("nome_comune"),
-                data.get("nome_scientifico"),
-                data.get("famiglia"),
-                data.get("tipo_ambiente", "esterno"),
-                data.get("luce"),
-                data.get("temp_min_c"),
-                data.get("temp_max_c"),
-                data.get("umidita_ottimale"),
-                data.get("note"),
-                pid,
-            ),
+            f"UPDATE piante SET {set_clause}, updated_at = datetime('now') "
+            f"WHERE id = ?",
+            _valori_pianta(data) + [pid],
         )
         conn.commit()
         return piante_get(pid)

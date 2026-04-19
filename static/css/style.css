@@ -543,3 +543,183 @@ body {
 /* ---------- Utility ---------- */
 .muted { color: var(--col-testo-soft); }
 .hidden, .nascosto { display: none !important; }
+
+
+/* ============================================================
+   Scheda di dettaglio pianta (v2.1)
+   ============================================================
+   Modal read-only a quattro tab che mostra la scheda agronomica.
+   Riprende il design della v1.0 negli screenshot: header con nome
+   e sottotitolo, chip di tassonomia, tab interne e pannelli con
+   righe "etichetta | valore".
+   ============================================================ */
+
+.scheda-dettaglio {
+  /* Eredita dal .modal-contenuto il layout di base; qui aggiungo
+     solo il minimo per far respirare i blocchi interni. */
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+
+.scheda-header {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: var(--sp-3);
+  align-items: center;
+  padding-bottom: var(--sp-3);
+  border-bottom: 1px solid var(--col-bordo);
+}
+
+.scheda-header-icona {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-m);
+  background: var(--col-sfondo-card);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.scheda-header-titolo h2 {
+  margin: 0;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.6rem;
+  color: var(--col-testo);
+  line-height: 1.2;
+}
+
+.scheda-header-azioni {
+  display: flex;
+  gap: var(--sp-2);
+}
+
+.scheda-chips-header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+}
+
+/* La chip della "linea fertilizzanti" va su una riga a sé sotto
+   le tab, come nello screenshot v1.0 dove "BioBizz" era separata. */
+.scheda-chip-linea {
+  display: flex;
+  gap: var(--sp-2);
+  padding: var(--sp-2) 0 0 0;
+}
+
+/* Tab interne della scheda. Nome classe diverso da .tab-interna
+   (che è usato nella sezione Gestione Tabelle) per evitare
+   collisioni semantiche anche se lo stile è molto simile. */
+.tabs-scheda {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+  border-bottom: 1px solid var(--col-bordo);
+  padding-bottom: var(--sp-1);
+}
+
+.tab-scheda {
+  border: 1px solid var(--col-bordo);
+  background: var(--col-sfondo-card);
+  color: var(--col-testo-soft);
+  padding: var(--sp-2) var(--sp-3);
+  border-radius: 999px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.tab-scheda:hover {
+  background: #fff;
+  color: var(--col-testo);
+}
+
+.tab-scheda.attiva {
+  background: #fff;
+  color: var(--col-testo);
+  border-color: var(--col-verde);
+  font-weight: 600;
+}
+
+.pannello-scheda { display: none; }
+.pannello-scheda.attivo { display: block; }
+
+/* Righe "etichetta | valore" della scheda. Due colonne su
+   desktop/tablet, una colonna (label sopra, valore sotto) su
+   mobile stretto — la griglia ha viewport piccolo a 380 px. */
+.scheda-riga {
+  display: grid;
+  grid-template-columns: 130px 1fr;
+  gap: var(--sp-3);
+  padding: var(--sp-2) 0;
+  border-bottom: 1px solid rgba(216, 207, 186, 0.4);
+}
+
+.scheda-riga:last-child {
+  border-bottom: none;
+}
+
+.scheda-etichetta {
+  color: var(--col-testo-soft);
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.scheda-valore {
+  color: var(--col-testo);
+  line-height: 1.45;
+  word-wrap: break-word;
+}
+
+.scheda-vuota {
+  padding: var(--sp-4) var(--sp-2);
+  text-align: center;
+  font-size: 0.9rem;
+}
+
+/* Collapse su mobile stretto: etichetta sopra, valore sotto. */
+@media (max-width: 520px) {
+  .scheda-riga {
+    grid-template-columns: 1fr;
+    gap: var(--sp-1);
+  }
+  .scheda-etichetta {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .scheda-header-titolo h2 { font-size: 1.4rem; }
+}
+
+/* ---------- Card cliccabile + hint ---------- */
+/* La card della lista ora è cliccabile per aprire il dettaglio;
+   un piccolo hint in fondo lo comunica all'utente. I pulsanti
+   matita/cestino restano usabili in modo indipendente grazie a
+   event.stopPropagation nel listener. */
+.card-cliccabile {
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.card-cliccabile:hover {
+  background: #fff;
+}
+
+.card-hint {
+  font-size: 0.75rem;
+  text-align: right;
+  margin-top: var(--sp-2);
+  opacity: 0.7;
+}
+
+/* ---------- Hint testuale sotto il titolo di un gruppo form ---------- */
+/* Uso nel form per annotare brevemente a cosa serve un gruppo di
+   campi (es. "queste tre voci compaiono come chip..."). */
+.form-gruppo-hint {
+  margin: -4px 0 var(--sp-3) 0;
+  font-size: 0.82rem;
+  line-height: 1.35;
+}
