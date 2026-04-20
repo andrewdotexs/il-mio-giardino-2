@@ -71,6 +71,7 @@
       <div class="tabs-interne">
         <button class="tab-interna attiva" data-tabella="fertilizzanti">💧 Fertilizzanti</button>
         <button class="tab-interna" data-tabella="substrati">🪨 Substrati</button>
+        <button class="tab-interna" data-tabella="componenti">🧩 Componenti</button>
         <button class="tab-interna" data-tabella="fitopatie">🔬 Fitopatie</button>
       </div>
 
@@ -92,6 +93,16 @@
         <input type="search" class="input-ricerca" id="ricerca-substrati"
                placeholder="Cerca substrato..." />
         <div id="lista-substrati" class="lista"></div>
+      </div>
+
+      <div id="pannello-componenti" class="pannello-tabella">
+        <div class="header-sezione compatto">
+          <h3>Componenti del substrato</h3>
+          <button class="btn-primario" id="btn-aggiungi-componente">+ Aggiungi</button>
+        </div>
+        <input type="search" class="input-ricerca" id="ricerca-componenti"
+               placeholder="Cerca componente..." />
+        <div id="lista-componenti" class="lista"></div>
       </div>
 
       <div id="pannello-fitopatie" class="pannello-tabella">

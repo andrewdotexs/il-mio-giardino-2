@@ -723,3 +723,134 @@ body {
   font-size: 0.82rem;
   line-height: 1.35;
 }
+
+
+/* ============================================================
+   Componenti del substrato (v2.2)
+   ============================================================
+   Stili per:
+   - le card della tab Componenti (con pallino colorato in header)
+   - l'editor di composizione substrato (dropdown + pallino)
+   - il color picker del form componente
+   - le chip con pallino nelle card substrato
+   ============================================================ */
+
+/* ---------- Pallini colorati ---------- */
+/* Pallino piccolo (inline nelle chip di composizione) */
+.chip-pallino {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  vertical-align: middle;
+  margin-right: 4px;
+  border: 1px solid rgba(0,0,0,0.15);
+  box-shadow: inset 0 0 3px rgba(0,0,0,0.1);
+}
+
+.chip-con-pallino {
+  display: inline-flex;
+  align-items: center;
+}
+
+/* Pallino grande: card componenti, preview nel color picker,
+   pallino dell'editor di composizione. 24×24 px, bordo sottile,
+   leggera ombra interna per simulare un granello di materiale. */
+.componente-pallino-grande {
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  border: 1px solid rgba(0,0,0,0.2);
+  box-shadow: inset 0 -2px 4px rgba(0,0,0,0.15),
+              inset 0 2px 3px rgba(255,255,255,0.25);
+}
+
+/* Wrap che affianca pallino + titolo nelle card componenti */
+.componente-titolo-wrap {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+
+/* ---------- Editor di composizione (dropdown + pallino) ---------- */
+/* Ogni riga: pallino | dropdown | percentuale | bottone elimina.
+   Uso CSS Grid per colonne fisse del pallino e del bottone, e
+   lascio flessibili la dropdown e l'input numerico. */
+.composizione-riga {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr) 70px auto;
+  gap: var(--sp-2);
+  align-items: center;
+  padding: var(--sp-2) 0;
+  border-bottom: 1px solid rgba(216, 207, 186, 0.3);
+}
+
+.composizione-riga:last-of-type { border-bottom: none; }
+
+.composizione-pallino {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 1px solid rgba(0,0,0,0.2);
+  box-shadow: inset 0 -2px 4px rgba(0,0,0,0.15),
+              inset 0 2px 3px rgba(255,255,255,0.25);
+  transition: background 0.2s ease;
+}
+
+.composizione-riga .comp-select {
+  min-width: 0;       /* impedisce overflow nella griglia */
+  width: 100%;
+}
+
+.composizione-riga .comp-perc {
+  width: 100%;
+  text-align: right;
+}
+
+/* Su mobile stretto la riga collassa: pallino+dropdown in prima linea,
+   percentuale+elimina in seconda. */
+@media (max-width: 480px) {
+  .composizione-riga {
+    grid-template-columns: 24px 1fr auto;
+    grid-template-areas:
+      "pall select select"
+      "pall perc   rimuovi";
+    row-gap: 4px;
+  }
+  .composizione-pallino        { grid-area: pall; align-self: center; }
+  .composizione-riga .comp-select { grid-area: select; }
+  .composizione-riga .comp-perc   { grid-area: perc; width: 80px; }
+  .composizione-riga .btn-rimuovi-componente { grid-area: rimuovi; }
+}
+
+/* ---------- Color picker nel form componente ---------- */
+/* Il wrap affianca tre elementi: preview del colore, input nativo
+   type=color (piccolo e simbolico), campo testuale con l'hex.
+   Sincronizzati via JS (wiringColorPicker in tabelle.js). */
+.color-picker-wrap {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+
+.color-picker-wrap input[type="color"] {
+  /* L'input nativo type=color ha un bordo goffo di default: lo
+     rendo un quadratino discreto 34×34 accanto al preview. */
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 1px solid var(--col-bordo);
+  border-radius: var(--radius-s);
+  cursor: pointer;
+  background: none;
+}
+
+.color-picker-wrap input[type="text"] {
+  flex: 1;
+  min-width: 0;
+  font-family: ui-monospace, Menlo, Consolas, monospace;
+  font-size: 0.9rem;
+  letter-spacing: 0.5px;
+}

@@ -174,6 +174,29 @@ CREATE TABLE IF NOT EXISTS fitopatie (
 );
 
 -- =====================================================================
+-- Tabella COMPONENTI_SUBSTRATO: anagrafica degli ingredienti del substrato
+-- =====================================================================
+-- Ogni riga rappresenta un ingrediente che può comporre un substrato:
+-- torba, perlite, pomice, akadama ecc. Prima esistevano soltanto come
+-- stringhe libere dentro il JSON di `substrati.composizione`; promuoverli
+-- a entità permette di associare un colore al componente (per il pallino
+-- nella UI) e una categoria (minerale vs organico), e apre la strada a
+-- query future tipo "quali substrati contengono perlite?".
+--
+-- Il campo `colore` è un codice hex (es. "#c8b27a"). Serve al rendering
+-- dei pallini nelle righe di composizione del form substrato e nei
+-- successivi grafici a torta che potrebbero visualizzare la ricetta.
+CREATE TABLE IF NOT EXISTS componenti_substrato (
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    nome            TEXT    NOT NULL UNIQUE,
+    categoria       TEXT CHECK(categoria IN ('minerale','organico','misto','biostimolante')),
+    colore          TEXT,    -- codice esadecimale "#rrggbb"
+    descrizione     TEXT,    -- breve nota d'uso ("trattiene umidità", "drenante pesante"...)
+    preimpostato    INTEGER DEFAULT 0,
+    created_at      TEXT DEFAULT (datetime('now'))
+);
+
+-- =====================================================================
 -- Tabella VASI: gli esemplari/record operativi
 -- =====================================================================
 -- Questa è la tabella "transazionale": una riga per ogni vaso fisico.
@@ -451,6 +474,35 @@ FITOPATIE_PREIMPOSTATE = [
 ]
 
 
+# Componenti del substrato: l'anagrafica degli ingredienti che entrano
+# nei mix. I colori sono stati scelti per rispecchiare l'aspetto visivo
+# reale del materiale (perlite biancastra, lapillo rosso scuro, torba
+# marrone-nero, sfagno verde, ecc.) così il pallino nella UI diventa
+# un aiuto visivo immediato per distinguerli. La categoria separa
+# minerali inerti e drenanti dai materiali organici ritentori.
+COMPONENTI_SUBSTRATO_PREIMPOSTATI = [
+    # (nome, categoria, colore_hex, descrizione)
+    ("Terriccio universale", "organico",     "#7a5a38", "Base organica per piante verdi da interno e da balcone"),
+    ("Perlite",              "minerale",     "#e6e2d6", "Minerale espanso, alleggerisce il substrato e migliora drenaggio"),
+    ("Pomice",               "minerale",     "#c4c1b8", "Roccia vulcanica porosa, drenante e leggera"),
+    ("Akadama",              "minerale",     "#c96a2b", "Argilla giapponese porosa, classica per bonsai"),
+    ("Sabbia grossa",        "minerale",     "#e3d29a", "Drenaggio, per substrati aridi di mediterranee e succulente"),
+    ("Corteccia / Bark",     "organico",     "#5b3921", "Pezzi di corteccia, tipici del substrato per orchidee"),
+    ("Fibra di cocco",       "organico",     "#a07648", "Alternativa alla torba, pH più neutro, buona ritenzione"),
+    ("Humus di lombrico",    "organico",     "#3b2415", "Ammendante ricco, biologicamente attivo"),
+    ("Mix succulente/cactus","misto",        "#cbb184", "Mix preconfezionato drenante per cactacee"),
+    ("Argilla espansa (leca)","minerale",    "#c84d1e", "Palline di argilla, drenaggio sul fondo del vaso"),
+    ("Kanuma",               "minerale",     "#e8d789", "Argilla giapponese acida, per acidofile (azalea, rododendro)"),
+    ("Kiryu",                "minerale",     "#87887a", "Pietra giapponese drenante, classica per conifere bonsai"),
+    ("Lapillo vulcanico",    "minerale",     "#6e2224", "Pietra vulcanica drenante, inerte e stabile"),
+    ("Sfagno",               "organico",     "#6fa25e", "Muschio, ottima ritenzione idrica, usato per orchidee"),
+    ("Zeolite",              "minerale",     "#8aa2b0", "Minerale naturale, scambia cationi e trattiene nutrienti"),
+    ("Kyodama",              "minerale",     "#d7bf88", "Argilla giapponese dura, per bonsai e drenaggio"),
+    ("Torba",                "organico",     "#3a2414", "Sostanza organica acida, buona ritenzione ma si compatta"),
+    ("Vermiculite",          "minerale",     "#d9c88a", "Minerale espanso, ritentore idrico e areante"),
+]
+
+
 # Piante di esempio: un piccolo catalogo per partire. L'utente ne aggiungerà
 # delle proprie via interfaccia. Metto solo quelle più plausibili per un
 # giardino italiano, lasciando i dati scheda vuoti dove non significativi.
@@ -588,6 +640,17 @@ def seed_if_empty():
                     (nome, desc, json.dumps(comp, ensure_ascii=False), whc, ph_min, ph_max, drenaggio),
                 )
             print(f"[seed] Inseriti {len(SUBSTRATI_PREIMPOSTATI)} substrati.")
+
+        # Componenti del substrato
+        count = conn.execute("SELECT COUNT(*) FROM componenti_substrato").fetchone()[0]
+        if count == 0:
+            conn.executemany(
+                """INSERT INTO componenti_substrato
+                   (nome, categoria, colore, descrizione, preimpostato)
+                   VALUES (?, ?, ?, ?, 1)""",
+                COMPONENTI_SUBSTRATO_PREIMPOSTATI,
+            )
+            print(f"[seed] Inseriti {len(COMPONENTI_SUBSTRATO_PREIMPOSTATI)} componenti substrato.")
 
         # Fitopatie
         count = conn.execute("SELECT COUNT(*) FROM fitopatie").fetchone()[0]

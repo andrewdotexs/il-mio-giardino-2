@@ -223,6 +223,7 @@
     fertilizzanti: null,
     substrati:     null,
     fitopatie:     null,
+    componenti:    null,
 
     async carica(nome, force = false) {
       if (!force && this[nome]) return this[nome];
@@ -235,7 +236,7 @@
     },
 
     invalidaTutto() {
-      this.piante = this.fertilizzanti = this.substrati = this.fitopatie = null;
+      this.piante = this.fertilizzanti = this.substrati = this.fitopatie = this.componenti = null;
     },
   };
 

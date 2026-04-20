@@ -439,6 +439,100 @@ def fitopatie_delete(fid):
         conn.close()
 
 
+# ----- Componenti del substrato -------------------------------------------
+# Anagrafica degli ingredienti che compongono i substrati. Esposta come
+# risorsa propria /api/componenti così la UI può popolare la dropdown
+# nell'editor di composizione e mostrare il pallino colorato per ogni
+# componente (il campo `colore` è un codice hex tipo "#c96a2b").
+#
+# NB: NON c'è foreign key da substrati.composizione verso componenti.id
+# perché composizione resta un JSON libero. Il legame è soft: il JSON
+# conterrà `{componente_id: X, nome: "...", percentuale: Y}` e se un
+# componente viene cancellato i substrati che lo usavano conservano il
+# nome denormalizzato senza perdere dati.
+
+def componenti_list():
+    conn = get_connection()
+    try:
+        rows = conn.execute(
+            "SELECT * FROM componenti_substrato "
+            "ORDER BY preimpostato DESC, nome COLLATE NOCASE"
+        ).fetchall()
+        return rows_to_list(rows)
+    finally:
+        conn.close()
+
+
+def componenti_get(cid):
+    conn = get_connection()
+    try:
+        row = conn.execute(
+            "SELECT * FROM componenti_substrato WHERE id = ?", (cid,)
+        ).fetchone()
+        return row_to_dict(row)
+    finally:
+        conn.close()
+
+
+def componenti_create(data):
+    conn = get_connection()
+    try:
+        cur = conn.execute(
+            """INSERT INTO componenti_substrato
+               (nome, categoria, colore, descrizione, preimpostato)
+               VALUES (?, ?, ?, ?, 0)""",
+            (
+                data.get("nome"),
+                data.get("categoria"),
+                data.get("colore"),
+                data.get("descrizione"),
+            ),
+        )
+        conn.commit()
+        return componenti_get(cur.lastrowid)
+    finally:
+        conn.close()
+
+
+def componenti_update(cid, data):
+    conn = get_connection()
+    try:
+        conn.execute(
+            """UPDATE componenti_substrato SET
+                 nome = ?, categoria = ?, colore = ?, descrizione = ?
+               WHERE id = ?""",
+            (
+                data.get("nome"),
+                data.get("categoria"),
+                data.get("colore"),
+                data.get("descrizione"),
+                cid,
+            ),
+        )
+        conn.commit()
+        return componenti_get(cid)
+    finally:
+        conn.close()
+
+
+def componenti_delete(cid):
+    """
+    Eliminazione "soft-safe": il componente non ha FK che lo ancorano,
+    ma potrebbe essere referenziato nel JSON di composizione di uno o
+    più substrati. Non impediamo la cancellazione — i substrati che
+    contenevano un riferimento a questo id manterranno il nome
+    denormalizzato e mostreranno il pallino grigio di default.
+    Se in futuro servisse un check "usato in N substrati", è sufficiente
+    scorrere `substrati.composizione` e contare i componente_id == cid.
+    """
+    conn = get_connection()
+    try:
+        conn.execute("DELETE FROM componenti_substrato WHERE id = ?", (cid,))
+        conn.commit()
+    finally:
+        conn.close()
+
+
 # ----- Vasi ----------------------------------------------------------------
 # I vasi sono la risorsa più ricca: hanno foreign key verso piante e
 # substrati, più due relazioni molti-a-molti (fertilizzanti, fitopatie).
@@ -657,6 +751,7 @@ RESOURCES = {
     "fertilizzanti":  (fertilizzanti_list,  fertilizzanti_get,  fertilizzanti_create,  fertilizzanti_update,  fertilizzanti_delete),
     "substrati":      (substrati_list,      substrati_get,      substrati_create,      substrati_update,      substrati_delete),
     "fitopatie":      (fitopatie_list,      fitopatie_get,      fitopatie_create,      fitopatie_update,      fitopatie_delete),
+    "componenti":     (componenti_list,     componenti_get,     componenti_create,     componenti_update,     componenti_delete),
     "vasi":           (vasi_list,           vasi_get,           vasi_create,           vasi_update,           vasi_delete),
 }
 
